@@ -6,8 +6,30 @@
 #define RTCDS1307 0x68
 
 class CRTC {
+  private:
+    uint16_t _offset;
+
+    uint8_t bcd(uint8_t data) {
+      return data + 6 * (data / 10);;
+    }
+
+    uint8_t decimal(uint8_t data) {
+      return data - 6 * (data >> 4);
+    }
+
+    bool isLeapYear(uint16_t year) {
+      return !((year % 4) * (!(year % 100) + (year % 400)));
+    }
+
+    uint8_t wday(uint16_t year, uint8_t month, uint8_t day) {
+      uint8_t n[12] = {31, 28 + isLeapYear(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+      year = (day + (((year - 1) * 365UL) + ((year - 1) / 4) - ((year - 1) / 100) + ((year - 1) / 400))) % 7;
+      while (month > 1) year += n[--month - 1];
+      return (year % 7) + 1;
+    }
+
   public:
-    explicit CRTC(uint16_t offset): _offset(offset) {
+    explicit CRTC(uint16_t offset = 2000): _offset(offset) {
       Wire.begin();
     };
 
@@ -87,29 +109,6 @@ class CRTC {
       }
       return false;
     }
-
-  private:
-    uint16_t _offset;
-
-    uint8_t bcd(uint8_t data) {
-      return data + 6 * (data / 10);;
-    }
-
-    uint8_t decimal(uint8_t data) {
-      return data - 6 * (data >> 4);
-    }
-
-    bool isLeapYear(uint16_t year) {
-      return !((year % 4) * (!(year % 100) + (year % 400)));
-    }
-
-    uint8_t wday(uint16_t year, uint8_t month, uint8_t day) {
-      uint8_t n[12] = {31, 28 + isLeapYear(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-      year = (day + (((year - 1) * 365UL) + ((year - 1) / 4) - ((year - 1) / 100) + ((year - 1) / 400))) % 7;
-      while (month > 1) year += n[--month - 1];
-      return (year % 7) + 1;
-    }
 };
-
 
 #endif
