@@ -75,21 +75,23 @@ class CRTC {
       uint8_t month, weekday, day, hour, minute, second;
       bool split, period;
 
-      read(year, month, day, hour, minute, second, split, period);
+      if (read(year, month, day, hour, minute, second, split, period)) {
 
-      if (state ^ split) {
+        if (state ^ split) {
 
-        if (state) {
-          period = hour > 11;
-          hour -= period * 12;
-          hour += (hour == 0) * 12;
+          if (state) {
+            period = hour > 11;
+            hour -= period * 12;
+            hour += (hour == 0) * 12;
 
-        } else {
-          hour = (hour % 12) + (period * 12);
+          } else {
+            hour = (hour % 12) + (period * 12);
+          }
         }
-      }
 
-      return write(year, month, day, hour, minute, second, state, period);
+        return write(year, month, day, hour, minute, second, state, period);
+      }
+      return false;
     }
 
   private:
