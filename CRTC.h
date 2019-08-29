@@ -5,9 +5,6 @@
 
 #define DS1307 0x68
 
-#define RTCAM 0
-#define RTCPM 1
-
 struct chronos {
   uint16_t year;
   uint8_t month, weekday, day, hour, minute, second;
@@ -16,83 +13,83 @@ struct chronos {
 
 class CRTC {
   public:
-    CRTC(uint8_t model, uint16_t start = 2000): _model(model), _start(start) {
+    CRTC(uint8_t model = DS1307, uint16_t start = 2000): _model(model), _start(start) {
       Wire.begin();
     };
 
-    chronos read() {
+    uint8_t read(uint16_t &year, uint8_t &month, uint8_t &day, uint8_t &hour, uint8_t &minute, uint8_t &second, bool &split, bool &period) {
       Wire.beginTransmission(_model);
       Wire.write(0);
       Wire.endTransmission();
 
       Wire.requestFrom((int)_model, 7);
 
-      chronos current;
-      current.second = decimal(Wire.read() & 0x7F);
-      current.minute = decimal(Wire.read() & 0x7F);
+      second = decimal(Wire.read());
+      minute = decimal(Wire.read());
 
       uint8_t data = Wire.read();
-      current.split = bitRead(data, 6);
-      current.period = current.split & bitRead(data, 5);
-      current.hour = current.split ? decimal(data & 0x1F) % 12 : decimal(data & 0x3F);
+      split = bitRead(data, 6);
+      period = split & bitRead(data, 5);
+      hour = decimal(data & (split ? 0x1F : 0x3F));
 
-      current.weekday = decimal(Wire.read());
-      current.day = decimal(Wire.read());
-      current.month = decimal(Wire.read());
-      current.year = decimal(Wire.read()) + _start;
-
-      return current;
+      uint8_t weekday = decimal(Wire.read());
+      day = decimal(Wire.read());
+      month = decimal(Wire.read());
+      year = decimal(Wire.read()) + _start;
+      return weekday;
     }
 
-    bool write(chronos current) {
-      if (current.second == min(uint8_t(59), current.second))
-        if (current.minute == min(uint8_t(59), current.minute))
-          if (current.hour == min(uint8_t(23), current.hour)) {
+    uint8_t write(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, bool split = false, bool period = false) {
+      if (second == min(uint8_t(59), second))
+        if (minute == min(uint8_t(59), minute)) {
+          if (hour == constrain(hour, split, uint8_t(split ? 12 : 23))) {
 
-            current.period = current.split * (current.hour > 11);
-            current.hour -= current.period * 12;
-            current.hour += current.split * (current.hour == 0) * 12;
-            uint8_t n[12] = {31, 28 + isLeapYear(current.year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+            uint8_t n[12] = {31, 28 + isLeapYear(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-            if (current.day == constrain(current.day, 1, n[current.month - 1]))
-              if (current.month == constrain(current.month, 1, uint8_t(12))) {
-                current.weekday = wday(current.year, current.month, current.day);
-                current.year = current.year - _start;
+            if (day == constrain(day, 1, n[month - 1]))
+              if (month == constrain(month, 1, uint8_t(12))) {
+                uint8_t weekday = wday(year, month, day);
+                year = year - _start;
 
-                if (current.year == min(uint8_t(99), uint8_t(current.year))) {
+                if (year == min(uint8_t(99), uint8_t(year))) {
                   Wire.beginTransmission(_model);
                   Wire.write(0x00);
-                  Wire.write(bcd(current.second));
-                  Wire.write(bcd(current.minute));
-                  Wire.write(bcd(current.hour) | current.split << 6 | current.period << 5);
-                  Wire.write(bcd(current.weekday));
-                  Wire.write(bcd(current.day));
-                  Wire.write(bcd(current.month));
-                  Wire.write(bcd(current.year));
+                  Wire.write(bcd(second));
+                  Wire.write(bcd(minute));
+                  Wire.write(bcd(hour) | (split << 6) | ((split & period) << 5));
+                  Wire.write(bcd(weekday));
+                  Wire.write(bcd(day));
+                  Wire.write(bcd(month));
+                  Wire.write(bcd(year));
                   Wire.endTransmission();
-                  return true;
+                  return weekday;
                 }
               }
           }
+        }
       return false;
     }
 
-    bool set(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second) {
-      chronos current = read();
-      current.year = year;
-      current.month = month;
-      current.day = day;
-      current.hour = hour;
-      current.minute = minute;
-      current.second = second;
-      return write(current);
-    }
+    uint8_t split(bool state) {
+      uint16_t year;
+      uint8_t month, weekday, day, hour, minute, second;
+      bool split, period;
 
-    bool split(bool state) {
-      chronos current = read();
-      current.hour += !state * current.split * current.period * 12;
-      current.split = state;
-      return write(current);
+      read(year, month, day, hour, minute, second, split, period);
+
+      if (state ^ split) {
+
+        if (state) {
+          period = hour > 11;
+          hour -= period * 12;
+          hour += (hour == 0) * 12;
+
+        } else {
+          hour = (hour % 12) + (period * 12);
+        }
+      }
+
+      return write(year, month, day, hour, minute, second, state, period);
     }
 
   private:
