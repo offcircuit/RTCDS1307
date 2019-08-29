@@ -5,12 +5,6 @@
 
 #define DS1307 0x68
 
-struct chronos {
-  uint16_t year;
-  uint8_t month, weekday, day, hour, minute, second;
-  bool split, period;
-};
-
 class CRTC {
   public:
     CRTC(uint8_t model = DS1307, uint16_t start = 2000): _model(model), _start(start) {
