@@ -3,20 +3,20 @@
 
 #include "Wire.h"
 
-#define DS1307 0x68
+#define RTCDS1307 0x68
 
 class CRTC {
   public:
-    CRTC(uint8_t model = DS1307, uint16_t start = 2000): _model(model), _start(start) {
+    explicit CRTC(uint16_t offset): _offset(offset) {
       Wire.begin();
     };
 
     uint8_t read(uint16_t &year, uint8_t &month, uint8_t &day, uint8_t &hour, uint8_t &minute, uint8_t &second, bool &split, bool &period) {
-      Wire.beginTransmission(_model);
+      Wire.beginTransmission(RTCDS1307);
       Wire.write(0);
       Wire.endTransmission();
 
-      Wire.requestFrom((int)_model, 7);
+      Wire.requestFrom(RTCDS1307, 7);
 
       second = decimal(Wire.read());
       minute = decimal(Wire.read());
@@ -29,7 +29,7 @@ class CRTC {
       uint8_t weekday = decimal(Wire.read());
       day = decimal(Wire.read());
       month = decimal(Wire.read());
-      year = decimal(Wire.read()) + _start;
+      year = decimal(Wire.read()) + _offset;
       return weekday;
     }
 
@@ -43,10 +43,10 @@ class CRTC {
             if (day == constrain(day, 1, n[month - 1]))
               if (month == constrain(month, 1, uint8_t(12))) {
                 uint8_t weekday = wday(year, month, day);
-                year = year - _start;
+                year = year - _offset;
 
                 if (year == min(uint8_t(99), uint8_t(year))) {
-                  Wire.beginTransmission(_model);
+                  Wire.beginTransmission(RTCDS1307);
                   Wire.write(0x00);
                   Wire.write(bcd(second));
                   Wire.write(bcd(minute));
@@ -89,8 +89,7 @@ class CRTC {
     }
 
   private:
-    uint8_t _model;
-    uint16_t _start;
+    uint16_t _offset;
 
     uint8_t bcd(uint8_t data) {
       return data + 6 * (data / 10);;
