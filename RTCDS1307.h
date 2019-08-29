@@ -1,11 +1,11 @@
-#ifndef CRTC_H
-#define CRTC_H
+#ifndef RTCDS1307_H
+#define RTCDS1307_H
 
 #include "Wire.h"
 
-#define RTCDS1307 0x68
+#define RTCADDRESS 0x68
 
-class CRTC {
+class RTCDS1307 {
   private:
     uint16_t _offset;
 
@@ -29,16 +29,16 @@ class CRTC {
     }
 
   public:
-    explicit CRTC(uint16_t offset = 2000): _offset(offset) {
+    explicit RTCDS1307(uint16_t offset = 2000): _offset(offset) {
       Wire.begin();
     };
 
     uint8_t read(uint16_t &year, uint8_t &month, uint8_t &day, uint8_t &hour, uint8_t &minute, uint8_t &second, bool &split, bool &period) {
-      Wire.beginTransmission(RTCDS1307);
+      Wire.beginTransmission(RTCADDRESS);
       Wire.write(0);
       Wire.endTransmission();
 
-      Wire.requestFrom(RTCDS1307, 7);
+      Wire.requestFrom(RTCADDRESS, 7);
 
       second = decimal(Wire.read());
       minute = decimal(Wire.read());
@@ -68,7 +68,7 @@ class CRTC {
                 year = year - _offset;
 
                 if (year == min(uint8_t(99), uint8_t(year))) {
-                  Wire.beginTransmission(RTCDS1307);
+                  Wire.beginTransmission(RTCADDRESS);
                   Wire.write(0x00);
                   Wire.write(bcd(second));
                   Wire.write(bcd(minute));
