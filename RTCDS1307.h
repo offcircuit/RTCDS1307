@@ -12,11 +12,11 @@ class RTCDS1307 {
     bool _split, _period;
 
     uint8_t bcd(uint8_t data) {
-      return data + 6 * (data / 10);;
+      return data + (6 * (data / 10));
     }
 
     uint8_t decimal(uint8_t data) {
-      return data - 6 * (data >> 4);
+      return data - (6 * (data >> 4));
     }
 
   public:
