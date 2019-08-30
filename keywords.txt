@@ -34,5 +34,5 @@ month	LITERAL2
 period	LITERAL2
 second	LITERAL2
 split	LITERAL2
-year	LITERAL2
 weekday	LITERAL2
+year	LITERAL2
