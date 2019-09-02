@@ -70,18 +70,21 @@ class RTCDS1307 {
     }
 
     bool setTimestamp(unsigned long t) {
-      _second = t % 60;
-      _minute = (t /= 60) % 60;
-      _hour = (t /= 60) % 24;
-      _period = _split * (_hour > 11);
-      _hour += (_split * !_hour * 12);
+      uint8_t s = t % 60;
+      uint8_t m = (t /= 60) % 60;
+      uint8_t h = (t /= 60) % 24;
+      bool p = _split * (h > 11);
+      h += (_split * !h * 12);
 
-      for (_year = 1970; t > (365 + isLeapYear(_year)); _year++) t -= (365 + isLeapYear(_year));
-      uint8_t n[12] = {31, 28 + isLeapYear(_year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-      for (_month = 1; t >= n[_month - 1]; _month++) t -= n[_month - 1];
+      uint16_t Y;
+      for (Y = 1970; t > (365 + isLeapYear(Y)); Y++) t -= (365 + isLeapYear(Y));
+      
+      uint8_t M;
+      uint8_t n[12] = {31, 28 + isLeapYear(Y), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+      for (M = 1; t >= n[M - 1]; M++) t -= n[M - 1];
 
-      if (_year < _offset) return false;
-      else return write(_year, _month, t + 1, _hour, _minute, _second, _split, _period);
+      if (Y < _offset) return false;
+      else return write(Y, M, t + 1, h, m, s, _split, p);
     }
 
     uint8_t wday(uint16_t Y, uint8_t M, uint8_t D) {
