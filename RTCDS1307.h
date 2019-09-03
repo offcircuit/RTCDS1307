@@ -24,10 +24,6 @@ class RTCDS1307 {
     const uint8_t &month = _month, &weekday = _weekday, &day = _day, &hour = _hour, &minute = _minute, &second = _second;
     const bool &split = _split, &period = _period;
 
-    explicit RTCDS1307(): _offset(2000) {
-      Wire.begin();
-    };
-
     explicit RTCDS1307(uint16_t offset): _offset(offset) {
       Wire.begin();
     };
