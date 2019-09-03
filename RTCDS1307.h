@@ -101,8 +101,9 @@ class RTCDS1307 {
         if ((D == constrain(D, 1, n[M - 1])) && (M == constrain(M, 1, uint8_t(12)))) {
           uint8_t WD = wday(Y, M, D);
           Y -= _offset;
-
+          
           if (Y == min(uint8_t(99), uint8_t(Y))) {
+            _year = Y + _offset;
             Wire.beginTransmission(RTCADDRESS);
             Wire.write(0x00);
             Wire.write(bcd(_second = s));
@@ -111,7 +112,7 @@ class RTCDS1307 {
             Wire.write(bcd(_weekday = WD));
             Wire.write(bcd(_day = D));
             Wire.write(bcd(_month = M));
-            Wire.write(bcd(_year = Y));
+            Wire.write(bcd(Y));
             Wire.endTransmission();
             return true;
           }
