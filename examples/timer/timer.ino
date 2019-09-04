@@ -1,17 +1,17 @@
-#include <RTCDS1307.h>
+#include "RTCDS1307.h"
 
 RTCDS1307 rtc(2000);
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   rtc.write(2019, 8, 29, 23, 59, 54);
 }
 
 void loop()
 {
   if (rtc.read()) {
-    if (!(rtc.second % 4)) rtc.cycle(1 - rtc.split);
+    if (!(rtc.second % 4)) rtc.midday(1 - rtc.mode);
     Serial.print(rtc.weekday, DEC);
     Serial.print("  ");
     Serial.print(rtc.day, DEC);
@@ -25,7 +25,7 @@ void loop()
     Serial.print(rtc.minute, DEC);
     Serial.print(":");
     Serial.print(rtc.second, DEC);
-    Serial.print(rtc.split ? (rtc.period ? " PM" : " AM") : "");
+    Serial.println(rtc.mode ? (rtc.period ? " PM" : " AM") : "");
   }
   delay(1000);
 }
