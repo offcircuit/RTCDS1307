@@ -1,11 +1,11 @@
-#ifndef RTCDS1307_H
-#define RTCDS1307_H
+#ifndef CRTC_H
+#define CRTC_H
 
 #include "Wire.h"
 
 #define RTCADDRESS 0x68
 
-class RTCDS1307 {
+class CRTC {
   private:
     uint16_t _offset, _year;
     uint8_t _month, _weekday, _day, _hour, _minute, _second;
