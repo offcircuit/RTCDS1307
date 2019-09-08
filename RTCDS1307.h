@@ -1,14 +1,14 @@
-#ifndef CRTC_H
-#define CRTC_H
+#ifndef RTCDS1307_H
+#define RTCDS1307_H
 
 #include "Wire.h"
 
 #define RTCADDRESS 0x68
 
-class CRTC {
+class RTCDS1307 {
   private:
     uint16_t _offset, _year;
-    uint8_t _month, _weekday, _day, _hour, _minute, _second;
+    uint8_t _month, _weekday, _day, _hour, _minute, _second, _address;
     bool _mode, _period;
 
     uint8_t bcd(uint8_t data) {
@@ -28,6 +28,14 @@ class CRTC {
       Wire.begin();
     };
 
+    void begin(uint8_t address = RTCADDRESS) {
+      _address = address;
+    }
+
+    bool isLeapYear(uint16_t Y) {
+      return !((Y % 4) * (!(Y % 100) + (Y % 400)));
+    }
+
     bool midday(bool state) {
       if ((read()) && (state ^ _mode)) {
         if (state) {
@@ -39,16 +47,12 @@ class CRTC {
       return false;
     }
 
-    bool isLeapYear(uint16_t Y) {
-      return !((Y % 4) * (!(Y % 100) + (Y % 400)));
-    }
-
     bool read() {
-      Wire.beginTransmission(RTCADDRESS);
+      Wire.beginTransmission(_address);
       Wire.write(0);
       Wire.endTransmission();
 
-      Wire.requestFrom(RTCADDRESS, 7);
+      Wire.requestFrom(int(_address), 7);
 
       _second = decimal(Wire.read());
       _minute = decimal(Wire.read());
@@ -74,7 +78,7 @@ class CRTC {
 
       uint16_t Y;
       for (Y = 1970; t > (365 + isLeapYear(Y)); Y++) t -= (365 + isLeapYear(Y));
-
+      
       uint8_t M;
       uint8_t n[12] = {31, 28 + isLeapYear(Y), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
       for (M = 1; t >= n[M - 1]; M++) t -= n[M - 1];
@@ -97,10 +101,10 @@ class CRTC {
         if ((D == constrain(D, 1, n[M - 1])) && (M == constrain(M, 1, uint8_t(12)))) {
           uint8_t WD = wday(Y, M, D);
           Y -= _offset;
-
+          
           if (Y == min(uint8_t(99), uint8_t(Y))) {
             _year = Y + _offset;
-            Wire.beginTransmission(RTCADDRESS);
+            Wire.beginTransmission(_address);
             Wire.write(0x00);
             Wire.write(bcd(_second = s));
             Wire.write(bcd(_minute = m));
