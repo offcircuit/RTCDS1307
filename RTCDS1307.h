@@ -9,30 +9,36 @@
 #define RTCDS1307_CONTROL 0x07
 #define RTCDS1307_RAM 0x08
 
+#define RTCDS1307_FREQ1H 0
+#define RTCDS1307_FREQ4K 1
+#define RTCDS1307_FREQ8K 2
+#define RTCDS1307_FREQ32K 3
+
 class RTCDS1307 {
   private:
     uint8_t _address;
     uint8_t *_buffer = (uint8_t *) malloc(5);
-    
+
     uint8_t bcd(uint8_t val);
     uint8_t decimal(uint8_t val);
-    void read(uint8_t address, uint8_t length);
-    void write(uint8_t address, uint8_t length);
-    
+    bool read(uint8_t address, uint8_t length);
+    bool write(uint8_t address, uint8_t length);
+
   public:
     RTCDS1307(uint8_t address);
     bool begin();
-    void getDate(uint8_t &Y, uint8_t &M, uint8_t &D, uint8_t &WD);
+    bool getDate(uint8_t &Y, uint8_t &M, uint8_t &D, uint8_t &WD);
     bool getMode();
-    void getTime(uint8_t &h, uint8_t &m, uint8_t &s);
-    void getTime(uint8_t &h, uint8_t &m, uint8_t &s, bool &period);
+    bool getTime(uint8_t &h, uint8_t &m, uint8_t &s);
+    bool getTime(uint8_t &h, uint8_t &m, uint8_t &s, bool &period);
     bool isLeapYear(uint16_t Y);
-    void read(uint8_t address, uint8_t *&buffer, uint8_t length);
-    void setDate(uint8_t Y, uint8_t M, uint8_t D);
-    void setMode(bool state);
-    void setTime(uint8_t h, uint8_t m, uint8_t s, bool mode = 0, bool period = 0);
+    bool read(uint8_t address, uint8_t *&buffer, uint8_t length);
+    bool setControl(bool output, bool square, uint8_t frequency);
+    bool setDate(uint8_t Y, uint8_t M, uint8_t D);
+    bool setMode(bool state);
+    bool setTime(uint8_t h, uint8_t m, uint8_t s, bool mode = 0, bool period = 0);
     uint8_t wday(uint16_t Y, uint8_t M, uint8_t D);
-    void write(uint8_t address, uint8_t *buffer, uint8_t length);
+    bool write(uint8_t address, uint8_t *buffer, uint8_t length);
 };
 
 #endif

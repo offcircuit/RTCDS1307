@@ -16,12 +16,14 @@ uint8_t RTCDS1307::decimal(uint8_t val) {
   return val - (6 * (val >> 4));
 }
 
-void RTCDS1307::getDate(uint8_t &Y, uint8_t &M, uint8_t &D, uint8_t &WD) {
-  read(RTCDS1307_DATE, 4);
-  WD = _buffer[0];
-  D = decimal(_buffer[1]);
-  M = decimal(_buffer[2]);
-  Y = decimal(_buffer[3]);
+bool RTCDS1307::getDate(uint8_t &Y, uint8_t &M, uint8_t &D, uint8_t &WD) {
+  if (read(RTCDS1307_DATE, 4)) {
+    WD = _buffer[0];
+    D = decimal(_buffer[1]);
+    M = decimal(_buffer[2]);
+    Y = decimal(_buffer[3]);
+    return true;
+  }
 }
 
 bool RTCDS1307::getMode() {
@@ -29,49 +31,58 @@ bool RTCDS1307::getMode() {
   return _buffer[0] >> 6 & 1;
 }
 
-void RTCDS1307::getTime(uint8_t &h, uint8_t &m, uint8_t &s) {
+bool RTCDS1307::getTime(uint8_t &h, uint8_t &m, uint8_t &s) {
   bool period;
-  getTime(h, m, s, period);
+  return getTime(h, m, s, period);
 }
 
-void RTCDS1307::getTime(uint8_t &h, uint8_t &m, uint8_t &s, bool &period) {
-  read(RTCDS1307_TIME, 3);
-  s = decimal(_buffer[0]);
-  m = decimal(_buffer[1]);
-  h = decimal(_buffer[2] & ((_buffer[2] >> 6 & 1) ? 0x1F : 0x3F));
-  period = (_buffer[2] >> 6 & 1) & (_buffer[2] >> 5 & 1);
+bool RTCDS1307::getTime(uint8_t &h, uint8_t &m, uint8_t &s, bool &period) {
+  if (read(RTCDS1307_TIME, 3)) {
+    s = decimal(_buffer[0]);
+    m = decimal(_buffer[1]);
+    h = decimal(_buffer[2] & ((_buffer[2] >> 6 & 1) ? 0x1F : 0x3F));
+    period = (_buffer[2] >> 6 & 1) & (_buffer[2] >> 5 & 1);
+    return true;
+  }
 }
 
 bool RTCDS1307::isLeapYear(uint16_t Y) {
   return !((Y % 4) * (!(Y % 100) + (Y % 400)));
 }
 
-void RTCDS1307::read(uint8_t address, uint8_t length) {
+bool RTCDS1307::read(uint8_t address, uint8_t length) {
   _buffer = (uint8_t *) malloc(length);
-  write(address, 0);
-  Wire.requestFrom(_address, length);
-  while (Wire.available() < length);
-  for (uint8_t i = 0; i < length; i++) _buffer[i] = uint8_t(Wire.read());
+  if (write(address, 0)) {
+    Wire.requestFrom(_address, length);
+    while (Wire.available() < length);
+    for (uint8_t i = 0; i < length; i++) _buffer[i] = uint8_t(Wire.read());
+    return true;
+  }
 }
 
-void RTCDS1307::read(uint8_t address, uint8_t *&buffer, uint8_t length) {
-  read(RTCDS1307_RAM | address, length);
-  buffer = (uint8_t *) malloc(length);
-  memcpy(buffer, _buffer, length);
+bool RTCDS1307::read(uint8_t address, uint8_t *&buffer, uint8_t length) {
+  if (read(RTCDS1307_RAM | address, length)) {
+    buffer = (uint8_t *) malloc(length);
+    memcpy(buffer, _buffer, length);
+    return true;
+  }
 }
 
-void RTCDS1307::setDate(uint8_t Y, uint8_t M, uint8_t D) {
+bool RTCDS1307::setControl(bool output, bool square, uint8_t frequency) {
+  _buffer[0] = output << 7 | square << 4 | frequency & 0xFF;
+  return write(RTCDS1307_CONTROL, 1);
+}
+
+bool RTCDS1307::setDate(uint8_t Y, uint8_t M, uint8_t D) {
   _buffer[0] = wday(Y, M, D);
   _buffer[1] = bcd(D);
   _buffer[2] = bcd(M);
   _buffer[3] = bcd(Y);
-  write(RTCDS1307_DATE, 4);
+  return write(RTCDS1307_DATE, 4);
 }
 
-void RTCDS1307::setMode(bool state) {
-  read(RTCDS1307_MODE, 1);
-
-  if (state ^ (_buffer[0] >> 6 & 1)) {
+bool RTCDS1307::setMode(bool state) {
+  if (read(RTCDS1307_MODE, 1) && (state ^ (_buffer[0] >> 6 & 1))) {
     bool period = (_buffer[0] >> 5 & 1);
     _buffer[0] = decimal(_buffer[0] & ((_buffer[0] >> 6 & 1) ? 0x1F : 0x3F));
 
@@ -79,15 +90,15 @@ void RTCDS1307::setMode(bool state) {
     else _buffer[0] = (_buffer[0] % 12) + (period * 12);
 
     _buffer[0] = bcd(_buffer[0]) | state << 6 | (state & period) << 5;
-    write(RTCDS1307_MODE, 1);
+    return write(RTCDS1307_MODE, 1);
   }
 }
 
-void RTCDS1307::setTime(uint8_t h, uint8_t m, uint8_t s, bool mode, bool period) {
+bool RTCDS1307::setTime(uint8_t h, uint8_t m, uint8_t s, bool mode, bool period) {
   _buffer[0] = bcd(s);
   _buffer[1] = bcd(m);
   _buffer[2] = bcd(h) | mode << 6 | (mode & period) << 5;
-  write(RTCDS1307_TIME, 3);
+  return write(RTCDS1307_TIME, 3);
 }
 
 uint8_t RTCDS1307::wday(uint16_t Y, uint8_t M, uint8_t D) {
@@ -97,14 +108,14 @@ uint8_t RTCDS1307::wday(uint16_t Y, uint8_t M, uint8_t D) {
   return (Y % 7) + 1;
 }
 
-void RTCDS1307::write(uint8_t address, uint8_t length) {
+bool RTCDS1307::write(uint8_t address, uint8_t length) {
   Wire.beginTransmission(_address);
   Wire.write(address);
   for (uint8_t i = 0; i < length; i++) Wire.write(_buffer[i]);
-  Wire.endTransmission(1);
+  return !Wire.endTransmission(1);
 }
 
-void RTCDS1307::write(uint8_t address, uint8_t *buffer, uint8_t length) {
+bool RTCDS1307::write(uint8_t address, uint8_t *buffer, uint8_t length) {
   memcpy(_buffer, buffer, length);
-  write(RTCDS1307_RAM | address, length);
+  return write(RTCDS1307_RAM | address, length);
 }
