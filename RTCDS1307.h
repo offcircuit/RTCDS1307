@@ -14,6 +14,9 @@
 #define RTCDS1307_FREQ8K 2
 #define RTCDS1307_FREQ32K 3
 
+#define RTCDS1307_MODE12 0
+#define RTCDS1307_MODE24 1
+
 class RTCDS1307 {
   private:
     uint8_t _address;
