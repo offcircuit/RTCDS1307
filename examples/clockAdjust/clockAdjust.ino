@@ -27,7 +27,7 @@ void loop()
   Serial.print("  ");
   Serial.print(day, DEC);
   Serial.print("/");
-  Serial.print(m[month]);
+  Serial.print(m[month - 1]);
   Serial.print("/");
   Serial.print(year + 2000, DEC);
   Serial.print("  ");
