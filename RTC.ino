@@ -10,8 +10,8 @@ void setup()
 {
   Serial.begin(115200);
   rtc.begin();
-  rtc.setDate(19, 9, 7);
-  rtc.setTime(11, 59, 50);
+  rtc.setDate(19, 2, 28);
+  rtc.setTime(23, 59, 50);
 }
 
 void loop()
