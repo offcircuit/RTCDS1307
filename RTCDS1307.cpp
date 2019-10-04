@@ -46,7 +46,7 @@ bool RTCDS1307::isLeapYear(uint16_t Y) {
   return !((Y % 4) * (!(Y % 100) + (Y % 400)));
 }
 
-bool RTCDS1307::read(uint8_t address, uint8_t length) {
+void RTCDS1307::read(uint8_t address, uint8_t length) {
   _buffer = (uint8_t *) malloc(length);
   write(address, 0);
   Wire.requestFrom(_address, length);
@@ -97,11 +97,11 @@ uint8_t RTCDS1307::wday(uint16_t Y, uint8_t M, uint8_t D) {
   return (Y % 7) + 1;
 }
 
-bool RTCDS1307::write(uint8_t address, uint8_t length) {
+void RTCDS1307::write(uint8_t address, uint8_t length) {
   Wire.beginTransmission(_address);
   Wire.write(address);
   for (uint8_t i = 0; i < length; i++) Wire.write(_buffer[i]);
-  return !Wire.endTransmission(1);
+  Wire.endTransmission(1);
 }
 
 void RTCDS1307::write(uint8_t address, uint8_t *buffer, uint8_t length) {
