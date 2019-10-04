@@ -26,7 +26,7 @@ void RTCDS1307::getDate(uint8_t &Y, uint8_t &M, uint8_t &D, uint8_t &WD) {
 
 bool RTCDS1307::getMode() {
   read(RTCDS1307_MODE, 1);
-  return bitRead(_buffer[0], 6);
+  return _buffer[0] >> 6 & 1;
 }
 
 void RTCDS1307::getTime(uint8_t &h, uint8_t &m, uint8_t &s) {
@@ -38,8 +38,8 @@ void RTCDS1307::getTime(uint8_t &h, uint8_t &m, uint8_t &s, bool &period) {
   read(RTCDS1307_TIME, 3);
   s = decimal(_buffer[0]);
   m = decimal(_buffer[1]);
-  h = decimal(_buffer[2] & (bitRead(_buffer[2], 6) ? 0x1F : 0x3F));
-  period = bitRead(_buffer[2], 6) & bitRead(_buffer[2], 5);
+  h = decimal(_buffer[2] & ((_buffer[2] >> 6 & 1) ? 0x1F : 0x3F));
+  period = (_buffer[2] >> 6 & 1) & (_buffer[2] >> 5 & 1);
 }
 
 bool RTCDS1307::isLeapYear(uint16_t Y) {
@@ -71,9 +71,9 @@ void RTCDS1307::setDate(uint8_t Y, uint8_t M, uint8_t D) {
 void RTCDS1307::setMode(bool state) {
   read(RTCDS1307_MODE, 1);
 
-  if (state ^ bitRead(_buffer[0], 6)) {
-    bool period = bitRead(_buffer[0], 5);
-    _buffer[0] = decimal(_buffer[0] & (bitRead(_buffer[0], 6) ? 0x1F : 0x3F));
+  if (state ^ (_buffer[0] >> 6 & 1)) {
+    bool period = (_buffer[0] >> 5 & 1);
+    _buffer[0] = decimal(_buffer[0] & ((_buffer[0] >> 6 & 1) ? 0x1F : 0x3F));
 
     if (state) _buffer[0] += ((_buffer[0] == 12) - (period = (_buffer[0] > 11))) * 12;
     else _buffer[0] = (_buffer[0] % 12) + (period * 12);

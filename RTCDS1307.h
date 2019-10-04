@@ -2,7 +2,6 @@
 #define RTCDS1307_H
 
 #include "Wire.h"
-#include "Arduino.h"
 
 #define RTCDS1307_TIME 0x00
 #define RTCDS1307_MODE 0x02
