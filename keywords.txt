@@ -11,11 +11,16 @@ RTCDS1307	KEYWORD1
 ##################################################
 # Methods and Functions			(KEYWORD2)
 ##################################################
-		
-cycle	KEYWORD2
+
+getDate	KEYWORD2
+getMode	KEYWORD2
+etTime	KEYWORD2
 isLeapYear	KEYWORD2
-setTimestamp	KEYWORD2
 read	KEYWORD2
+setControl	KEYWORD2
+setDate	KEYWORD2
+setMode	KEYWORD2
+setTime	KEYWORD2
 wday	KEYWORD2
 write	KEYWORD2
 
@@ -23,17 +28,15 @@ write	KEYWORD2
 # Constants				(LITERAL1)
 ##################################################
 
+RTCDS1307_FREQ1H	LITERAL1
+RTCDS1307_FREQ4K	LITERAL1
+RTCDS1307_FREQ8K	LITERAL1
+RTCDS1307_FREQ32K	LITERAL1
+
+RTCDS1307_MODE12	LITERAL1
+RTCDS1307_MODE24	LITERAL1
 
 ##################################################
 # Built-in variables			(LITERAL2)
 ##################################################
 
-day	LITERAL2
-hour	LITERAL2
-minute	LITERAL2
-month	LITERAL2
-period	LITERAL2
-second	LITERAL2
-split	LITERAL2
-weekday	LITERAL2
-year	LITERAL2
