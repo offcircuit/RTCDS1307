@@ -51,7 +51,7 @@ bool RTCDS1307::isLeapYear(uint16_t Y) {
 }
 
 bool RTCDS1307::read(uint8_t address, uint8_t length) {
-  _buffer = (uint8_t *) malloc(length);
+  _buffer = (uint8_t *) realloc(_buffer, length);
   if (write(address, 0)) {
     Wire.requestFrom(_address, length);
     while (Wire.available() < length);
@@ -62,7 +62,7 @@ bool RTCDS1307::read(uint8_t address, uint8_t length) {
 
 bool RTCDS1307::read(uint8_t address, uint8_t *&buffer, uint8_t length) {
   if (read(RTCDS1307_RAM | address, length)) {
-    buffer = (uint8_t *) malloc(length);
+    buffer = (uint8_t *) realloc(_buffer, length);
     memcpy(buffer, _buffer, length);
     return true;
   }
