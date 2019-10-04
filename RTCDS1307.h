@@ -19,8 +19,8 @@ class RTCDS1307 {
     uint8_t decimal(uint8_t val);
     void read(uint8_t address, uint8_t length);
     void write(uint8_t address, uint8_t length);
+    
   public:
-
     RTCDS1307(uint8_t address);
     bool begin();
     void getDate(uint8_t &Y, uint8_t &M, uint8_t &D, uint8_t &WD);
