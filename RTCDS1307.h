@@ -14,8 +14,8 @@
 #define RTCDS1307_FREQ8K 2
 #define RTCDS1307_FREQ32K 3
 
-#define RTCDS1307_MODE12 0
-#define RTCDS1307_MODE24 1
+#define RTCDS1307_MODE12 1
+#define RTCDS1307_MODE24 0
 
 class RTCDS1307 {
   private:
@@ -39,7 +39,7 @@ class RTCDS1307 {
     bool setControl(bool output, bool square, uint8_t frequency);
     bool setDate(uint8_t Y, uint8_t M, uint8_t D);
     bool setMode(bool state);
-    bool setTime(uint8_t h, uint8_t m, uint8_t s, bool mode = 0, bool period = 0);
+    bool setTime(uint8_t h, uint8_t m, uint8_t s, bool mode = RTCDS1307_MODE24, bool period = 0);
     uint8_t wday(uint16_t Y, uint8_t M, uint8_t D);
     bool write(uint8_t address, uint8_t *buffer, uint8_t length);
 };
