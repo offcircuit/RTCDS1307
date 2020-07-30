@@ -86,9 +86,13 @@ bool RTCDS1307::setMode(bool state) {
     bool period = (_buffer[0] >> 5 & 1);
     _buffer[0] = decimal(_buffer[0] & ((_buffer[0] >> 6 & 1) ? 0x1F : 0x3F));
 
-    if (state) _buffer[0] += ((_buffer[0] == 12) - (period = (_buffer[0] > 11))) * 12;
-    else _buffer[0] = (_buffer[0] % 12) + (period * 12);
-
+    if (state) {
+      period = (_buffer[0] > 11);
+      _buffer[0] = (_buffer[0] % 12) + (!(_buffer[0] % 12) * 12);
+    } else {
+      _buffer[0] = (_buffer[0] % 12) + (period * 12);
+    }
+    
     _buffer[0] = bcd(_buffer[0]) | state << 6 | (state & period) << 5;
     return write(RTCDS1307_MODE, 1);
   }
